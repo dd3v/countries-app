@@ -1,0 +1,102 @@
+openapi: 3.1.0
+info:
+  title: Countries App API
+  description: Internal API for the Countries application.
+  version: 1.0.0
+
+servers:
+  - url: /api
+
+paths:
+  /countries:
+    get:
+      operationId: listCountries
+      summary: List all countries
+      description: Returns a list of all countries with their names and flag URLs. Requires an authenticated session.
+      tags:
+        - Countries
+      security:
+        - session: []
+      responses:
+        '200':
+          description: A list of countries.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                examples:
+                  - private, max-age=3600
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Country'
+              examples:
+                default:
+                  value:
+                    data:
+                      - name: Germany
+                        flag_url: https://flagcdn.com/w320/de.png
+                      - name: Japan
+                        flag_url: https://flagcdn.com/w320/jp.png
+        '401':
+          description: Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                default:
+                  value:
+                    message: Unauthenticated.
+        '500':
+          description: Failed to fetch countries from external data source.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                default:
+                  value:
+                    message: Server Error
+
+components:
+  schemas:
+    Country:
+      type: object
+      required:
+        - name
+        - flag_url
+      properties:
+        name:
+          type: string
+          description: Common name of the country.
+          examples:
+            - Germany
+        flag_url:
+          type: string
+          format: uri
+          description: URL to the country's flag image (PNG).
+          examples:
+            - https://flagcdn.com/w320/de.png
+
+    Error:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: laravel_session
+      description: Auth0 session-based authentication.

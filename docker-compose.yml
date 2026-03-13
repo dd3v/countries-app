@@ -1,0 +1,22 @@
+services:
+  app:
+    build:
+      context: .
+      target: app
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - storage_data:/var/www/storage
+
+  nginx:
+    build:
+      context: .
+      target: nginx
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8000}:80"
+    depends_on:
+      - app
+
+volumes:
+  storage_data:
